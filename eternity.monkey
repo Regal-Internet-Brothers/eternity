@@ -6,6 +6,7 @@ Public
 #If BRL_GAMETARGET_IMPLEMENTED
 	Import mojo.app
 #Else
+	Import mojoemulator
 	Import time
 #End
 
@@ -29,7 +30,15 @@ Class Eternity ' Effectively a namespace.
 	Const HourLength:Float = MinuteLength ' 60.0
 	
 	' Day related:
-	Global Days:String[] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+	Const Sunday:String = "Sunday"
+	Const Monday:String = "Monday"
+	Const Tuesday:String = "Tuesday"
+	Const Wednesday:String = "Wednesday"
+	Const Thursday:String = "Thursday"
+	Const Friday:String = "Friday"
+	Const Saturday:String = "Saturday"
+	
+	Global Days:String[] = [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday]
 	
 	' The length of a day. (In hours)
 	Const DayLength:Float = 24.0
@@ -40,10 +49,27 @@ Class Eternity ' Effectively a namespace.
 	Const WeekLength:Int = 7
 	
 	' String formatting related:
+	Const January:String = "January"
+	Const February:String = "February"
+	Const March:String = "March"
+	Const April:String = "April"
+	Const May:String = "May"
+	Const June:String = "June"
+	Const July:String = "July"
+	Const August:String = "August"
+	Const September:String = "September"
+	Const October:String = "October"
+	Const November:String = "November"
+	Const December:String = "December"
+	
 	Global Formatting_Inst:String[] = ["st", "nd", "rd", "th"]
-	Global Formatting_Months:String[] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+	Global Formatting_Months:String[] = [January, February, March, April, May, June, July, August, September, October, November, December]
 	
 	' Month related:
+	
+	' Day calculation table(s):
+	Global DayCalculation_MonthTable:Int[] = [0, 3, 3, 6, 1, 4, 6, 2, 5, 0, 3, 5]
+	Global DayCalculation_MonthTable_Leap:Int[] = [-1, 2]
 	
 	' The length used for the shortened names for months.
 	Const ShortenedMonthSize:Int = 3
@@ -139,9 +165,20 @@ Class Eternity ' Effectively a namespace.
 	
 	Function CalculateDay:String(SetVariable:Bool=True, DateInfo:Int[]=[])
 		GetDate(DateInfo)
-	
+		
+		Local M:Int = Month(CurrentMonth)-1
+		Local LeapResponse:Bool = IsLeapYear(CurrentYear) And M+1 < DayCalculation_MonthTable_Leap.Length
+		
+		If (LeapResponse) Then
+			M = DayCalculation_MonthTable_Leap[M]
+		Else
+			M = DayCalculation_MonthTable[M]
+		Endif
+		
+		Local Y:= CurrentYear Mod 100
+		
 		' Local variables:
-		Local Day:= Days[Int((CurrentDate + Month(CurrentMonth) + CurrentYear + (CurrentYear/4) + CurrentCentury) Mod WeekLength)]
+		Local Day:= Days[((CurrentDate + M + Y + (Y/4) + (CurrentCentury Mod 4)-1) Mod WeekLength)]
 		
 		IF (SetVariable) Then
 			CurrentDay = Day
@@ -191,7 +228,11 @@ Class Eternity ' Effectively a namespace.
 	End
 	
 	Function CalculateLeap:Float(Input:Float)
-		Return (0.25*4.0-((CurrentYear + Input) Mod 4))
+		Return (0.25*4.0-((CurrentYear + Input) Mod 4.0))
+	End
+	
+	Function IsLeapYear:Bool(Y:Int)
+		Return (((Y Mod 4) = 0) And ((Y Mod 100) <> 0) Or ((Y Mod 400) = 0))
 	End
 	
 	Function GetDate:Int[](DateInfo:Int[]=[], Refresh:Bool=False)

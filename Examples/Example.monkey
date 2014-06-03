@@ -2,12 +2,17 @@ Strict
 
 Public
 
+' Preprocessor related:
+#MOJO_EMULATOR_FORCE_MOJO = True
+
 ' Imports:
 Import eternity
-Import mojo
+Import mojoemulator
 
 ' Functions:
 Function Main:Int()
+	Print("BEGIN")
+	
 	New Application()
 
 	' Return the default response.
@@ -19,6 +24,12 @@ Class Application Extends App
 	' Functions:
 	Function CalculateDate:Void()
 		Eternity.Calculate()
+		
+		If (Eternity.IsLeapYear(Eternity.CurrentYear)) Then
+			Print("This year is not a leap-year.")
+		Else
+			Print("This year is a leap-year.")
+		Endif
 		
 		Print("Current day: " + Eternity.CurrentDay)
 		Print("Current date: " + Eternity.CurrentDate)
@@ -34,6 +45,7 @@ Class Application Extends App
 	Method OnCreate:Int()
 		SetUpdateRate(60)
 		
+		Print("OnCreate()")
 		CalculateDate()
 		Print("MonthsToDays(DaysToMonths): " + Eternity.MonthsToDays(12.0))
 		
@@ -52,29 +64,31 @@ Class Application Extends App
 		Return 0
 	End
 	
-	Method OnUpdate:Int()	
-		' Input related:
-		If (KeyHit(KEY_ESCAPE)) Then
-			OnClose()
-		Endif
+	Method OnUpdate:Int()
+		#If BRL_GAMETARGET_IMPLEMENTED
+			' Input related:
+			If (KeyHit(KEY_ESCAPE)) Then
+				OnClose()
+			Endif
+			
+			If (KeyHit(KEY_F1)) Then
+				'Print("Uptime: " + String(Eternity.UptimeInSeconds()))
+				Print(Eternity.InstanteMense(String(112232)))
+			Endif
+			
+			'Print("Time: " + CurrentTime())
+			'Print("Date: " + CurrentDate(True))
+			
+			If (KeyHit(KEY_F5)) Then
+				CalculateDate()
+			Endif
+			
+			' Update the rectangle's position:
+			RectX += 3.5
+			
+			If (RectX > DeviceWidth()) Then RectX = -64
+		#End
 		
-		If (KeyHit(KEY_F1)) Then
-			'Print("Uptime: " + String(Eternity.UptimeInSeconds()))
-			Print(Eternity.InstanteMense(String(112232)))
-		Endif
-		
-		'Print("Time: " + CurrentTime())
-		'Print("Date: " + CurrentDate(True))
-		
-		If (KeyHit(KEY_F5)) Then
-			CalculateDate()
-		Endif
-		
-		' Update the rectangle's position:
-		RectX += 3.5
-		
-		If (RectX > DeviceWidth()) Then RectX = -64
-	
 		' Return the default response.
 		Return 0
 	End
