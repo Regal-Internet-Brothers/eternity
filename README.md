@@ -1,4 +1,4 @@
 eternity
 ========
 
-A somewhat advanced date/time handling module for the Monkey X programming language.
+A date/time detection and management module for the [Monkey programming language](https://github.com/blitz-research/monkey).

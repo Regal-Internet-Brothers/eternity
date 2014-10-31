@@ -3,7 +3,7 @@ Strict
 Public
 
 ' Preprocessor related:
-#MOJO_EMULATOR_FORCE_MOJO = True
+#MOJO_EMULATOR_FORCE_MOJO = False ' True
 
 ' Imports:
 Import eternity
