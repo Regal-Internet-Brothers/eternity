@@ -10,9 +10,29 @@ Public
 	Import time
 #End
 
+' Aliases:
+Alias Milliseconds = Int
+Alias TimePoint = Milliseconds
+Alias Duration = TimePoint
+
 ' Classes:
-Class Eternity ' Effectively a namespace.
+Class Eternity Final ' Effectively a namespace.
 	' Global & Constant variables:
+	
+	' Raw date-data macros:
+	Const DATE_POSITION_YEAR:Int		= 0
+	Const DATE_POSITION_MONTH:Int		= 1
+	Const DATE_POSITION_DAY:Int			= 2
+	Const DATE_POSITION_HOURS:Int		= 3
+	Const DATE_POSITION_MINUTES:Int		= 4
+	Const DATE_POSITION_SECONDS:Int		= 5
+	Const DATE_POSITION_MS:Int			= 6
+	
+	' Other:
+	
+	' This may be used to disable timers manually, without managing them yourself.
+	' Ideally, you wouldn't use this, but it can be useful for those who are lazy.
+	Const TIMER_DISABLED:Int = -1
 	
 	' Second related:
 	
@@ -74,7 +94,7 @@ Class Eternity ' Effectively a namespace.
 	' The length used for the shortened names for months.
 	Const ShortenedMonthSize:Int = 3
 	
-	' Shortened versions of each of the months' names:
+	' Shortened versions of each of the months' name:
 	Global Months:String[] =
 		[Formatting_Months[0][..ShortenedMonthSize], Formatting_Months[1][..ShortenedMonthSize], Formatting_Months[2][..ShortenedMonthSize],
 		Formatting_Months[3][..ShortenedMonthSize], Formatting_Months[4][..ShortenedMonthSize], Formatting_Months[5][..ShortenedMonthSize],
@@ -110,16 +130,17 @@ Class Eternity ' Effectively a namespace.
 	Global CurrentYear:Int
 	
 	' This will stay as 2000 for now. There's no real reason to change it.
-	' If this code is used in any century but our current one, they'll just have to deal with incorrect day names.
-	Const CurrentCentury:Int = 2000 ' 21st
+	' If this code is used in any century but our current one,
+	' they'll just have to deal with incorrect day names.
+	Const CurrentCentury:Int = 2000 ' 21st.
 		
 	' Anything else can be easily extracted from the 'Data' variable.
 	
 	' Functions:
 	
 	' Date related functions:
-	Function Month:Int(MonthData:String)	
-		For Local Index:Int = 0 Until Months.Length()
+	Function Month:Int(MonthData:String)
+		For Local Index:= 0 Until Months.Length()
 			If (Months[Index] = MonthData) Then
 				' Not normally my style, but I suppose it is faster.
 				Return (Index+1)
@@ -152,7 +173,7 @@ Class Eternity ' Effectively a namespace.
 		GetDate(DateInfo)
 		
 		' Local variable(s):
-		Local CM:= Months[Data[1]-1]
+		Local CM:= Months[(Data[DATE_POSITION_MONTH]-1)]
 		
 		' If we're supposed to be setting the current month, do so:
 		If (SetVariable) Then
@@ -180,7 +201,7 @@ Class Eternity ' Effectively a namespace.
 		' Local variables:
 		Local Day:= Days[((CurrentDate + M + Y + (Y/4) + (CurrentCentury Mod 4)-1) Mod WeekLength)]
 		
-		IF (SetVariable) Then
+		If (SetVariable) Then
 			CurrentDay = Day
 		Endif
 		
@@ -200,7 +221,7 @@ Class Eternity ' Effectively a namespace.
 		GetDate(DateInfo)
 	
 		' Local variable(s):
-		Local CD:Int = Data[2]
+		Local CD:= Data[DATE_POSITION_DAY]
 		
 		' If we're supposed to be setting the current day, do so:
 		If (SetVariable) Then
@@ -216,7 +237,7 @@ Class Eternity ' Effectively a namespace.
 		GetDate(DateInfo)
 	
 		' Local variable(s):
-		Local CY:Int = Data[0]
+		Local CY:= Data[DATE_POSITION_YEAR]
 		
 		' If we're supposed to be setting the current year, do so:
 		If (SetVariable) Then
@@ -261,29 +282,27 @@ Class Eternity ' Effectively a namespace.
 	End
 	
 	Function InstanteMense:String(Data:String)
-		If (Data.Length() = 0) Then Return Data
-	
+		If (Data.Length() = 0) Then Return ""
+		
 		' Remove any unwanted characters.
 		Data = String(Int(Data))
 		
 		' Add an 'inst.' to the string specified:
 		If (Data.Length() > 1 And Data[Data.Length()-2..][..1] = "1") Then
-			Data += Formatting_Inst[3]
-		Else
-			Select Data[Data.Length()-1..]
-				Case "1"
-					Data += Formatting_Inst[0]
-				Case "2"
-					Data += Formatting_Inst[1]
-				Case "3"
-					Data += Formatting_Inst[2]
-				Default
-					Data += Formatting_Inst[3]
-			End Select
+			Return Data + Formatting_Inst[3] ' "th"
 		Endif
-			
+		
+		Select Data[Data.Length()-1..]
+			Case "1"
+				Return Data + Formatting_Inst[0] ' "st"
+			Case "2"
+				Return Data + Formatting_Inst[1] ' "nd"
+			Case "3"
+				Return Data + Formatting_Inst[2] ' "rd"
+		End Select
+		
 		' Return the final string.
-		Return Data
+		Return Data + Formatting_Inst[3] ' "th"
 	End
 	
 	Function Inst:String(Data:String)
@@ -296,7 +315,7 @@ Class Eternity ' Effectively a namespace.
 		
 		If (FallbackToInput) Then MonthOUT = MonthIN
 	
-		For Local Index:Int = 0 Until Months.Length()
+		For Local Index:= 0 Until Months.Length()
 			If (MonthIN = Formatting_Months[Index][..ShortenedMonthSize]) Then
 				MonthOUT = Formatting_Months[Index]
 			
@@ -319,48 +338,52 @@ Class Eternity ' Effectively a namespace.
 	Function TimeInMilliseconds:Int(Refresh:Bool=True)
 		Calculate(Refresh)
 		
-		Return Data[6]
+		Return Data[DATE_POSITION_MS]
 	End
 		
 	Function TimeInSeconds:Float(Refresh:Bool=True)	
 		Calculate(Refresh)
 		
-		Return Float(Data[5] + Float(MillisecondsToSeconds(TimeInMilliseconds(False))))
+		Return Float(Data[DATE_POSITION_SECONDS] + Float(MillisecondsToSeconds(TimeInMilliseconds(False))))
 	End
 	
 	Function TimeInMinutes:Float(Refresh:Bool=True)
 		Calculate(Refresh)
 		
-		Return Float(Data[4] + Float(SecondsToMinutes(TimeInSeconds(False))))
+		Return Float(Data[DATE_POSITION_MINUTES] + Float(SecondsToMinutes(TimeInSeconds(False))))
 	End
 	
 	Function TimeInHours:Float(Refresh:Bool=True)
 		Calculate(Refresh)
 	
-		Return Float(Data[3] + Float(MinutesToHours(TimeInMinutes(False))))
+		Return Float(Data[DATE_POSITION_HOURS] + Float(MinutesToHours(TimeInMinutes(False))))
 	End
 	
 	Function TimeInDays:Float(Refresh:Bool=True)
 		Calculate(Refresh)
 		
-		Return Float(CurrentDate + Float(HoursToDays(TimeInHours(False)))) ' Data[2]
+		Return Float(CurrentDate + Float(HoursToDays(TimeInHours(False)))) ' Data[DATE_POSITION_DAY]
 	End
 	
 	Function TimeInMonths:Float(Refresh:Bool=True)
 		Calculate(Refresh)
 		
-		Return Float(Data[1] + Float(DaysToMonths(TimeInDays(False))))
+		Return Float(Data[DATE_POSITION_MONTH] + Float(DaysToMonths(TimeInDays(False))))
 	End
 	
 	Function TimeInYears:Float(Refresh:Bool=True)
 		Calculate(Refresh)
 		
-		Return Float(CurrentYear + Float(MonthsToYears(TimeInMonths(False)))) ' Data[0]
+		Return Float(CurrentYear + Float(MonthsToYears(TimeInMonths(False)))) ' Data[DATE_POSITION_YEAR]
 	End
 	
 	' Up-time related functions:
 	Function Uptime:Int()
 		Return Millisecs()
+	End
+	
+	Function GetTime:TimePoint()
+		Return TimePoint(Uptime())
 	End
 	
 	Function UptimeInSeconds:Float()
@@ -390,6 +413,11 @@ Class Eternity ' Effectively a namespace.
 	Function UptimeInYears:Float()
 		'Return (UptimeInWeeks() / 52)
 		Return DaysToYears(UptimeInDays())
+	End
+	
+	' This command will tell you how much time has passed since a specific point.
+	Function TimeDifference:Duration(Point:TimePoint)
+		Return (GetTime()-Point)
 	End
 	
 	' Conversion related functions:
@@ -439,7 +467,7 @@ Class Eternity ' Effectively a namespace.
 		#Rem
 		Local M:= New Int[Max(Int(Months), 1)]
 	
-		For Local Index:Int = 0 Until Max(Int(Months), 1)
+		For Local Index:= 0 Until Max(Int(Months), 1)
 			M[Index] = Index+1
 		Next
 		
@@ -452,8 +480,10 @@ Class Eternity ' Effectively a namespace.
 	Function MonthsToDays:Float(MonthsIN:Int[])
 		Local Days:Float = 0.0
 		
-		For Local Index:Int = 0 Until MonthsIN.Length()
-			If (MonthsIN[Index] > Months.Length()) Then Exit
+		For Local Index:= 0 Until MonthsIN.Length()
+			If (MonthsIN[Index] > Months.Length()) Then
+				Exit
+			Endif
 			
 			Days += MonthLengths[Max(MonthsIN[Index]-1, 0)]
 		Next
@@ -524,20 +554,5 @@ Function CurrentDate:String(Formatted:Bool=False)
 		Return (Eternity.FullMonth(Eternity.CurrentMonth) + " " + Eternity.InstanteMense(Eternity.CurrentDate) + " " + Eternity.CurrentYear)
 	Endif
 	
-	Return (Eternity.CalculateDateStr() + " " + Eternity.CurrentMonth + " " + Eternity.CurrentYear) ' "20 Jan 2013"
+	Return (Eternity.CalculateDateStr() + " " + Eternity.CurrentMonth + " " + Eternity.CurrentYear)
 End
-
-' Unused:
-
-' Day-name related:
-#Rem
-	Global Sunday:String = "Sunday"
-	Global Monday:String = "Monday"
-	Global Tuesday:String = "Tuesday"
-	Global Wednesday:String = "Wednesday"
-	Global Thursday:String = "Thursday"
-	Global Friday:String = "Friday"
-	Global Saturday:String = "Saturday"
-	
-	Global Days:String[] = [Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday]
-#End
