@@ -6,8 +6,8 @@ Public
 #If BRL_GAMETARGET_IMPLEMENTED
 	Import mojo.app
 #Else
-	Import mojoemulator
-	Import time
+	Import regal.mojoemulator
+	Import regal.time
 #End
 
 ' Aliases:

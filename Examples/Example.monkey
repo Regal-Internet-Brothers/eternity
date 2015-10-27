@@ -6,8 +6,8 @@ Public
 #MOJO_EMULATOR_FORCE_MOJO = False ' True
 
 ' Imports:
-Import eternity
-Import mojoemulator
+Import regal.eternity
+Import regal.mojoemulator
 
 ' Functions:
 Function Main:Int()
