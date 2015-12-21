@@ -434,17 +434,17 @@ Class Eternity Final ' Effectively a namespace.
 	End
 	
 	Function MinutesToSeconds:Float(Minutes:Float)
-		Return (Minutes * SecondLength)
+		Return (Minutes * MinuteLength)
 	End
 	
 	Function MinutesToHours:Float(Minutes:Float)
-		Return SecondsToMinutes(Minutes)
-		'Return (Minutes / HourLength)
+		'Return SecondsToMinutes(Minutes)
+		Return (Minutes / HourLength)
 	End
 	
 	Function HoursToMinutes:Float(Hours:Float)
-		Return MinutesToSeconds(Hours)
-		'Return (Hours * MinuteLength)
+		'Return MinutesToSeconds(Hours)
+		Return (Hours * MinuteLength)
 	End
 	
 	Function DaysToHours:Float(Days:Float)
